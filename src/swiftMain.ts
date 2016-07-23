@@ -7,7 +7,7 @@ import { SwiftCompletionItemProvider } from './swiftSuggest';
 
 // this method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
-	context.subscriptions.push(vscode.languages.registerCompletionItemProvider(SWIFT_MODE, new SwiftCompletionItemProvider(), '.', '\"'));
+	context.subscriptions.push(vscode.languages.registerCompletionItemProvider(SWIFT_MODE, new SwiftCompletionItemProvider(), '.', '\"', '(', ')'));
 }
 
 // this method is called when your extension is deactivated
