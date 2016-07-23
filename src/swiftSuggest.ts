@@ -68,11 +68,11 @@ export class SwiftCompletionItemProvider implements vscode.CompletionItemProvide
 								sourcetext = sourcetext.replace('<#T##', '{{').replace('##\w*','').replace('#>', '}}');
 								item.kind = vscode.CompletionItemKind.Snippet;
 							} while (sourcetext.match('<#T##'))
-						} else if (!isSnippet && suggest.kind.match('var\.instance')) {
+						} else if (!isSnippet && suggest.kind.match('var|let')) {
 							item.kind = vscode.CompletionItemKind.Property;
-						} else if (!isSnippet && suggest.kind.match('method\.instance"')) {
+						} else if (!isSnippet && suggest.kind.match('method"')) {
 							item.kind = vscode.CompletionItemKind.Method;
-						} else if (!isSnippet && suggest.kind.match('operator') || suggest.kind.match('function.subscript')) {
+						} else if (!isSnippet && suggest.kind.match('operator') || suggest.kind.match('subscript')) {
 							item.kind = vscode.CompletionItemKind.Function;
 							//todo prefix...
 						}
