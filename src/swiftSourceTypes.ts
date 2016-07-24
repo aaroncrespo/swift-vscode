@@ -1,5 +1,8 @@
 import vscode = require('vscode');
 
+/**
+ *  Bindings for SourceKit type definitions
+ */
 export enum Keyword {
     Keyword, 'source.lang.swift.keyword',
 };
@@ -12,6 +15,7 @@ export enum Decl {
     Protocol, 'source.lang.swift.decl.protocol',
     Struct, 'source.lang.swift.decl.struct',
     Typealias, 'source.lang.swift.decl.typealias',
+    Module, 'source.lang.swift.decl.module',
 };
 export enum DeclExtension {
     Class, 'source.lang.swift.decl.extension.class',
@@ -94,6 +98,14 @@ export type SwiftType =
     Syntaxtype |
     SyntaxtypeAttribute;
 
+/**
+ * Maps SourceKit types to VSCode {vscode.CompletionItemKind}
+ * FIXME: kinda limted
+ * 
+ * @export
+ * @param {SwiftType} swiftType
+ * @returns {vscode.CompletionItemKind}
+ */
 export function completionKindForSwiftType(swiftType: SwiftType): vscode.CompletionItemKind {
     switch (swiftType) {
         case Keyword.Keyword:
@@ -114,6 +126,8 @@ export function completionKindForSwiftType(swiftType: SwiftType): vscode.Complet
             return vscode.CompletionItemKind.Class;
         case Decl.Typealias:
             return vscode.CompletionItemKind.Interface;
+        case Decl.Module:
+            return vscode.CompletionItemKind.Module;
         case DeclExtension.Class:
             return vscode.CompletionItemKind.Class;
         case DeclFunction.Constructor:

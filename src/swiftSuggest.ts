@@ -8,14 +8,41 @@ import { TextDocument, Position } from 'vscode';
 import { SwiftType, completionKindForSwiftType  } from './swiftSourceTypes';
 
 interface SwiftCompletionSuggestion {
+	/** 
+	 * @type {string}
+	 */
 	name: string,
+	/** 
+	 * @type {string}
+	 */
 	descriptionKey: string,
+	/** 
+	 * @type {string}
+	 */
 	sourcetext: string,
+	/** 
+	 * @type {SwiftType}
+	 */
 	kind: SwiftType,
+	/** 
+	 * @type {string}
+	 */
 	typeName: string,
+	/** 
+	 * @type {string}
+	 */
 	moduleName: string,
+	/** 
+	 * @type {string}
+	 */
 	associatedUSRs: string,
+	/** 
+	 * @type {string}
+	 */
 	context: string,
+	/** 
+	 * @type {string}
+	 */
 	docBrief: string,
 };
 
@@ -23,57 +50,52 @@ function swiftSuggestionToCompletionItem(suggestion: SwiftCompletionSuggestion):
 	let item = new vscode.CompletionItem(suggestion.descriptionKey);
 	item.detail = suggestion.typeName;
 	item.documentation = suggestion.docBrief;
-	let sourcetext = createSnippet(suggestion);
-	if (sourcetext.length != suggestion.sourcetext.length) {
-		// is this really allowed?
-		item.kind = vscode.CompletionItemKind.Snippet | completionKindForSwiftType(suggestion.kind);
-	} else {
-		item.kind = completionKindForSwiftType(suggestion.kind);
+	item.insertText = createSnippet(suggestion);
+	item.kind = completionKindForSwiftType(suggestion.kind);
+	item.filterText = item.insertText;
+
+ 	if (suggestion.sourcetext.length != item.insertText.length) {
+		item.kind |= vscode.CompletionItemKind.Snippet;
 	}
-	item.insertText = sourcetext;
 	return item;
 };
 
 function createSnippet(suggestion: SwiftCompletionSuggestion): string {
 	let cursorIndex = 1
+	/**
+	 * @param {any} _
+	 * @param {any} group
+	 * @returns
+	 */
 	const replacer = suggestion.sourcetext.replace(/<#T##(.+?)#>/g, (_, group) => {
 		return `\{{${cursorIndex++}:${group.split('##')[0]}}}`;
 	});
 	return replacer.replace('<#code#>', `\{{${cursorIndex++}}}`);
 };
 
-// we can complete type constrants <{{}}> 
-// we can complete functions and parameters-ish foo(bar:{{}})
-// todo complete initializers Array<String>({{}}) or String()
-// todo better completion outside of clear boundaries: foo: T defined in scope should complete on fo{{}}
-// todo better expanding of closure snippets
-
+/**
+ *
+ * 	we can complete type constrants <{{}}>
+ *	we can complete functions and parameters-ish foo(bar:{{}})
+ *	TODO: complete initializers Array<String>({{}}) or String()
+ *	TODO: better completion outside of clear boundaries: foo: T defined in scope should complete on fo{{}}
+ *	TODO: better expanding of closure snippets 
+ * 
+ * @export
+ * @class SwiftCompletionItemProvider
+ * @implements {vscode.CompletionItemProvider}
+ */
 export class SwiftCompletionItemProvider implements vscode.CompletionItemProvider {
+	/**
+	 * 
+	 * 
+	 * @param {vscode.TextDocument} document
+	 * @param {vscode.Position} position
+	 * @param {vscode.CancellationToken} token
+	 * @returns {Thenable<vscode.CompletionItem[]>}
+	 */
 	public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.CompletionItem[]> {
 		return new Promise<vscode.CompletionItem[]>((resolve, reject) => {
-
-			let lineText = document.lineAt(position.line).text;
-
-			if (lineText.match(/^\s*\/\//)) {
-				return resolve([]);
-			}
-
-			if ((lineText.substring(0, position.character).match(/\"/g) || []).length % 2 === 1) {
-				return resolve([]);
-			}
-
-			let wordAtPosition = document.getWordRangeAtPosition(position);
-			let currentWord = '';
-
-			if (wordAtPosition && wordAtPosition.start.character < position.character) {
-				let word = document.getText(wordAtPosition);
-				currentWord = word.substr(0, position.character - wordAtPosition.start.character);
-			}
-
-			if (currentWord.match(/^\d+$/)) {
-				return resolve([]);
-			}
-
 			let filename = document.fileName;
 			let offset = document.offsetAt(position);
 			// config/exec
@@ -91,7 +113,7 @@ export class SwiftCompletionItemProvider implements vscode.CompletionItemProvide
 					let suggestions = [];
 					for (let suggest of results) {
 						suggestions.push(swiftSuggestionToCompletionItem(suggest));
-					};
+					}
 					resolve(suggestions);
 				} catch (e) {
 					reject(e);
